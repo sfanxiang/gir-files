@@ -59,7 +59,7 @@ xmlstarlet ed -P -L \
 xmlstarlet ed -P -L \
 	-u '//_:parameter[@name="response_id"]/_:type[@name="gint"]/@c:type' -v "GtkResponseType" \
 	-u '//_:parameter[@name="response_id"]/_:type[@name="gint"]/@name' -v "ResponseType" \
-	Gtk-3.0.gir
+	Gtk-3.0.gir Gtk-4.0.gir
 
 # fill in types from JavaScriptCore
 xmlstarlet ed -P -L \
@@ -72,3 +72,37 @@ xmlstarlet ed -P -L \
 	-u '//_:constant[@name="DOM_NODE_FILTER_SHOW_ALL"]/_:type/@name' -v "guint" \
 	-u '//_:constant[@name="DOM_NODE_FILTER_SHOW_ALL"]/_:type/@c:type' -v "guint" \
 	WebKit2WebExtension-4.0.gir
+
+# remove source-position from gtk 4.0
+xmlstarlet ed -P -L \
+	-d '//_:source-position' \
+	Gdk-4.0.gir GdkX11-4.0.gir Graphene-1.0.gir Gsk-4.0.gir Gtk-4.0.gir
+
+# fix cyclic dependency on gtk 4.0
+xmlstarlet ed -P -L \
+	-u '//_:callback[@name="ParseErrorFunc"]/_:parameters/_:parameter[@name="section"]/_:type[@c:type="const GtkCssSection*"]/@c:type' -v "gconstpointer" \
+	-a '//_:callback[@name="ParseErrorFunc"]/_:parameters/_:parameter[@name="section"]/_:type[@c:type="gconstpointer"]' -type attr -n "name" -v "gconstpointer" \
+	Gsk-4.0.gir
+
+# add c:type to fixed-size arrays
+xmlstarlet ed -P -L \
+	-a '//_:record[@name="TimeCoord"]//_:field[@name="axes"]/_:array' -type attr -n "c:type" -v "gdouble" \
+	Gdk-4.0.gir
+xmlstarlet ed -P -L \
+	-a '//_:record[@name="Frustum"]//_:field[@name="planes"]/_:array' -type attr -n "c:type" -v "graphene_plane_t" \
+	Graphene-1.0.gir
+xmlstarlet ed -P -L \
+	-a '//_:record[@name="Quad"]//_:field[@name="points"]/_:array' -type attr -n "c:type" -v "graphene_point_t" \
+	Graphene-1.0.gir
+xmlstarlet ed -P -L \
+	-a '//_:record[@name="RoundedRect"]//_:field[@name="corner"]/_:array' -type attr -n "c:type" -v "graphene_size_t" \
+	Gsk-4.0.gir
+xmlstarlet ed -P -L \
+	-a '//_:record//_:field[@name="padding"]/_:array' -type attr -n "c:type" -v "gpointer" \
+	Gtk-4.0.gir
+xmlstarlet ed -P -L \
+	-a '//_:record//_:field[@name="_padding"]/_:array' -type attr -n "c:type" -v "gpointer" \
+	Gtk-4.0.gir
+xmlstarlet ed -P -L \
+	-a '//_:record//_:field[@name="reserved"]/_:array' -type attr -n "c:type" -v "gpointer" \
+	Gtk-4.0.gir
